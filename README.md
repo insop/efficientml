@@ -1,6 +1,8 @@
 # [EfficientML](https://efficientml.ai)
 
-This repo contains my own implementation of the labs from [EfficientML](https://efficientml.ai) Fall 2023.
+## Introduction
+
+This repo contains my own implementation of the labs from [EfficientML](https://efficientml.ai) "TinyML and Efficient Deep Learning Computing 6.5940 • Fall • 2023"
 
 ## List of labs
 
