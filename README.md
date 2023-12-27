@@ -6,11 +6,14 @@ This repo contains my own implementation of the labs from [EfficientML](https://
 
 ## List of labs
 
-- [ ] [Lab1](Lab1.ipynb)
-- [ ] [Lab2](Lab1.ipynb)
-- [ ] [Lab3](Lab1.ipynb)
-- [ ] [Lab4](Lab1.ipynb)
+- [x] [Lab1](Lab1.ipynb)
+- [x] [Lab2](Lab1.ipynb)
+- [x] [Lab3](Lab1.ipynb)
+- [x] [Lab4](Lab1.ipynb)
 - [ ] Lab5
+
+## Lab5
+Read the description in [Lab5](lab5/README.md).
 
 ## Acknowledgements
 
