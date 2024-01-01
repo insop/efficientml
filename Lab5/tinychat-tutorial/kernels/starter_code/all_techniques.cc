@@ -109,14 +109,14 @@ static void *all_techniques_worker_func(void *args) {
                 int_sum2 = vdupq_n_s32(0);
                 int_sum3 = vdupq_n_s32(0);
 
-                sumv0 = vdotq_s32(int_sum0, w0_low, a0);
-                sumv0 = vdotq_s32(int_sum0, w0_high, a1);
-                sumv1 = vdotq_s32(int_sum1, w1_low, a0);
-                sumv1 = vdotq_s32(int_sum1, w1_high, a1);
-                sumv2 = vdotq_s32(int_sum2, w2_low, a0);
-                sumv2 = vdotq_s32(int_sum2, w2_high, a1);
-                sumv3 = vdotq_s32(int_sum3, w3_low, a0);
-                sumv3 = vdotq_s32(int_sum3, w3_high, a1);
+                int_sum0 = vdotq_s32(int_sum0, w0_low, a0);
+                int_sum0 = vdotq_s32(int_sum0, w0_high, a1);
+                int_sum1 = vdotq_s32(int_sum1, w1_low, a2);
+                int_sum1 = vdotq_s32(int_sum1, w1_high, a3);
+                int_sum2 = vdotq_s32(int_sum2, w2_low, a4);
+                int_sum2 = vdotq_s32(int_sum2, w2_high, a5);
+                int_sum3 = vdotq_s32(int_sum3, w3_low, a6);
+                int_sum3 = vdotq_s32(int_sum3, w3_high, a7);
 
                 float s_0 = *s_a++ * *s_w++;
                 float s_1 = *s_a++ * *s_w++;
@@ -124,11 +124,11 @@ static void *all_techniques_worker_func(void *args) {
                 float s_3 = *s_a++ * *s_w++;
 
                 sumv0 = vmlaq_n_f32(sumv0, vcvtq_f32_s32(int_sum0), s_0);
-                sumv0 = vmlaq_n_f32(sumv0, vcvtq_f32_s32(int_sum1), s_1);
-                sumv0 = vmlaq_n_f32(sumv0, vcvtq_f32_s32(int_sum2), s_2);
-                sumv0 = vmlaq_n_f32(sumv0, vcvtq_f32_s32(int_sum3), s_3);
+                sumv1 = vmlaq_n_f32(sumv1, vcvtq_f32_s32(int_sum1), s_1);
+                sumv2 = vmlaq_n_f32(sumv2, vcvtq_f32_s32(int_sum2), s_2);
+                sumv3 = vmlaq_n_f32(sumv3, vcvtq_f32_s32(int_sum3), s_3);
             }
-            params->C.data_ptr[row * n + col] = vaddvq_f32(sumv0);
+            params->C.data_ptr[row * n + col] = vaddvq_f32(sumv0) + vaddvq_f32(sumv1) + vaddvq_f32(sumv2) + vaddvq_f32(sumv3);
 #endif
 #ifdef QM_x86
             // order of weights with QM_x86:

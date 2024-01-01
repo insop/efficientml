@@ -86,8 +86,8 @@ void MatmulOperator::mat_mul_simd_programming(struct matmul_params *params) {
 
                 int_sum0 = vdupq_n_s32(0);
 
-                sumv0 = vdotq_s32(int_sum0, w0_low, a0);
-                sumv0 = vdotq_s32(int_sum0, w0_high, a1);
+                int_sum0 = vdotq_s32(int_sum0, w0_low, a0);
+                int_sum0 = vdotq_s32(int_sum0, w0_high, a1);
 
                 float s_0 = *s_a++ * *s_w++;
                 sumv0 = vmlaq_n_f32(sumv0, vcvtq_f32_s32(int_sum0), s_0);
