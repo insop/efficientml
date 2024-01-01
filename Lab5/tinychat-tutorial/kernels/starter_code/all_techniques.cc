@@ -67,9 +67,27 @@ static void *all_techniques_worker_func(void *args) {
                 // lowbit mask
                 const uint8x16_t mask_low4bit = vdupq_n_u8(0xf);
 
+                int8x16_t w0_low = vreinterpretq_s8_u8(vandq_u8(w0, mask_low4bit));
+                int8x16_t w0_high = vreinterpretq_s8_u8(vshrq_n_u8(w0, 4));
+                int8x16_t w1_low = vreinterpretq_s8_u8(vandq_u8(w1, mask_low4bit));
+                int8x16_t w1_high = vreinterpretq_s8_u8(vshrq_n_u8(w1, 4));
+                int8x16_t w2_low = vreinterpretq_s8_u8(vandq_u8(w2, mask_low4bit));
+                int8x16_t w2_high = vreinterpretq_s8_u8(vshrq_n_u8(w2, 4));
+                int8x16_t w3_low = vreinterpretq_s8_u8(vandq_u8(w3, mask_low4bit));
+                int8x16_t w3_high = vreinterpretq_s8_u8(vshrq_n_u8(w3, 4));
+
                 // TODO: apply zero_point to weights and convert the range from (0, 15) to (-8, 7)
                 // Hint: using `vsubq_s8` to the lower-half and upper-half vectors of weights
                 const int8x16_t offsets = vdupq_n_s8(8);
+
+                w0_low = vsubq_s8(w0_low, offsets);
+                w0_high = vsubq_s8(w0_high, offsets);
+                w1_low = vsubq_s8(w1_low, offsets);
+                w1_high = vsubq_s8(w1_high, offsets);
+                w2_low = vsubq_s8(w2_low, offsets);
+                w2_high = vsubq_s8(w2_high, offsets);
+                w3_low = vsubq_s8(w3_low, offsets);
+                w3_high = vsubq_s8(w3_high, offsets);
 
                 // load 128 8-bit activation
                 const int8x16_t a0 = vld1q_s8(a_start);
@@ -85,6 +103,20 @@ static void *all_techniques_worker_func(void *args) {
                 // TODO: perform dot product and store the result into the intermediate sum, int_sum0
                 // Hint: use `vdotq_s32` and store the sum for each block in int_sum{0-3}
                 int32x4_t int_sum0, int_sum1, int_sum2, int_sum3;
+
+                int_sum0 = vdupq_n_s32(0);
+                int_sum1 = vdupq_n_s32(0);
+                int_sum2 = vdupq_n_s32(0);
+                int_sum3 = vdupq_n_s32(0);
+
+                sumv0 = vdotq_s32(int_sum0, w0_low, a0);
+                sumv0 = vdotq_s32(int_sum0, w0_high, a1);
+                sumv1 = vdotq_s32(int_sum1, w1_low, a0);
+                sumv1 = vdotq_s32(int_sum1, w1_high, a1);
+                sumv2 = vdotq_s32(int_sum2, w2_low, a0);
+                sumv2 = vdotq_s32(int_sum2, w2_high, a1);
+                sumv3 = vdotq_s32(int_sum3, w3_low, a0);
+                sumv3 = vdotq_s32(int_sum3, w3_high, a1);
 
                 float s_0 = *s_a++ * *s_w++;
                 float s_1 = *s_a++ * *s_w++;
@@ -222,6 +254,18 @@ void MatmulOperator::mat_mul_all_techniques(struct matmul_params *params) {
     assert(params->block_size == 32);  // support block size 32 for now
 
     // TODO: Thread creation
+
+    for (int i = 0; i < num_thread; i++) {
+        threads_args[i].start_j = i * (C->column / num_thread);
+        threads_args[i].end_j = (i + 1) * (C->column / num_thread);
+        threads_args[i].params = params;
+        pthread_create(&thread_pool[i], NULL, all_techniques_worker_func, &threads_args[i]);
+    }
+
+    for (int i = 0; i < num_thread; i++) {
+        pthread_join(thread_pool[i], NULL);
+    }
+
 
     // TODO: Join threads
 };

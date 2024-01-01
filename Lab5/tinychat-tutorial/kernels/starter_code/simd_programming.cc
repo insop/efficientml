@@ -64,9 +64,15 @@ void MatmulOperator::mat_mul_simd_programming(struct matmul_params *params) {
                 // lowbit mask
                 const uint8x16_t mask_low4bit = vdupq_n_u8(0xf);
 
+                int8x16_t w0_low = vreinterpretq_s8_u8(vandq_u8(w0, mask_low4bit));
+                int8x16_t w0_high = vreinterpretq_s8_u8(vshrq_n_u8(w0, 4));
+
                 // TODO: apply zero_point to weights and convert the range from (0, 15) to (-8, 7)
                 // Hint: using `vsubq_s8` to the lower-half and upper-half vectors of weights
                 const int8x16_t offsets = vdupq_n_s8(8);
+
+                w0_low = vsubq_s8(w0_low, offsets);
+                w0_high = vsubq_s8(w0_high, offsets);
 
                 // load 32 8-bit activation
                 const int8x16_t a0 = vld1q_s8(a_start);
@@ -77,6 +83,11 @@ void MatmulOperator::mat_mul_simd_programming(struct matmul_params *params) {
                 // Hint: use `vdotq_s32` to compute sumv0 = a0 * lower-half weights + a1 * upper-half weights
                 // int32x4 vector to store intermediate sum
                 int32x4_t int_sum0;
+
+                int_sum0 = vdupq_n_s32(0);
+
+                sumv0 = vdotq_s32(int_sum0, w0_low, a0);
+                sumv0 = vdotq_s32(int_sum0, w0_high, a1);
 
                 float s_0 = *s_a++ * *s_w++;
                 sumv0 = vmlaq_n_f32(sumv0, vcvtq_f32_s32(int_sum0), s_0);

@@ -58,6 +58,39 @@ static void *multithreading_loop_unrolling_worker_func(void *args) {
                 for (int qj = 0; qj < 16; qj++) {
                     // TODO: decode a packed byte into two int8 in the range of (-8, 7)
 
+                    // decode a packed byte into two int8 in the range of (-8, 7)
+                    uint8_t packed_int4_0 = w0_int4[qj];
+                    signed char w_de_0 = (packed_int4_0 & 0x0F) - 8.0;
+                    signed char w_de_16 = (packed_int4_0 >> 4) - 8.0;
+                    // int8 multiply and accumulate operation
+                    intermediate_sum0 += a_int8[qj] * w_de_0;
+                    intermediate_sum0 += a_int8[qj + 16] * w_de_16;
+
+                    // decode a packed byte into two int8 in the range of (-8, 7)
+                    packed_int4_0 = w1_int4[qj];
+                    w_de_0 = (packed_int4_0 & 0x0F) - 8.0;
+                    w_de_16 = (packed_int4_0 >> 4) - 8.0;
+                    // int8 multiply and accumulate operation
+                    intermediate_sum1 += a_int8[qj] * w_de_0;
+                    intermediate_sum1 += a_int8[qj + 16] * w_de_16;
+
+                    // decode a packed byte into two int8 in the range of (-8, 7)
+                    packed_int4_0 = w2_int4[qj];
+                    w_de_0 = (packed_int4_0 & 0x0F) - 8.0;
+                    w_de_16 = (packed_int4_0 >> 4) - 8.0;
+                    // int8 multiply and accumulate operation
+                    intermediate_sum2 += a_int8[qj] * w_de_0;
+                    intermediate_sum2 += a_int8[qj + 16] * w_de_16;
+
+                    // decode a packed byte into two int8 in the range of (-8, 7)
+                    packed_int4_0 = w3_int4[qj];
+                    w_de_0 = (packed_int4_0 & 0x0F) - 8.0;
+                    w_de_16 = (packed_int4_0 >> 4) - 8.0;
+                    // int8 multiply and accumulate operation
+                    intermediate_sum3 += a_int8[qj] * w_de_0;
+                    intermediate_sum3 += a_int8[qj + 16] * w_de_16;
+
+
                     // TODO: int8 multiply and accumulate operation
                 }
                 // dequantize the sum into floating point
@@ -131,6 +164,17 @@ void MatmulOperator::mat_mul_multithreading_loop_unrolling(struct matmul_params 
     assert(params->block_size == 32);  // support block size 32 for now
 
     // TODO: Thread creation
+
+    for (int i = 0; i < num_thread; i++) {
+        threads_args[i].start = i * (C->column / num_thread);
+        threads_args[i].end = (i + 1) * (C->column / num_thread);
+        threads_args[i].params = params;
+        pthread_create(&thread_pool[i], NULL, multithreading_loop_unrolling_worker_func, &threads_args[i]);
+    }
+
+    for (int i = 0; i < num_thread; i++) {
+        pthread_join(thread_pool[i], NULL);
+    }
 
     // TODO: Join threads
 };
